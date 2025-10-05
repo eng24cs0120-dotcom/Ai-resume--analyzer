@@ -1,0 +1,49 @@
+import React from "react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
+import { Sparkles, Loader2 } from "lucide-react";
+import { motion } from "framer-motion";
+
+const stages = [
+  { threshold: 20, label: "Uploading resume..." },
+  { threshold: 40, label: "Extracting information..." },
+  { threshold: 80, label: "Analyzing with AI..." },
+  { threshold: 100, label: "Generating insights..." }
+];
+
+export default function AnalysisProgress({ progress }) {
+  const currentStage = stages.find(s => progress <= s.threshold) || stages[stages.length - 1];
+
+  return (
+    <Card className="border-none shadow-2xl bg-white/90 backdrop-blur-sm">
+      <CardContent className="p-12">
+        <div className="text-center space-y-8">
+          <motion.div
+            animate={{ rotate: 360 }}
+            transition={{ repeat: Infinity, duration: 2, ease: "linear" }}
+            className="inline-flex"
+          >
+            <div className="w-24 h-24 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-full flex items-center justify-center shadow-2xl">
+              <Sparkles className="w-12 h-12 text-white" />
+            </div>
+          </motion.div>
+          
+          <div className="space-y-4">
+            <h2 className="text-3xl font-bold text-slate-900">
+              Analyzing Your Resume
+            </h2>
+            <p className="text-lg text-slate-600 flex items-center justify-center gap-2">
+              <Loader2 className="w-5 h-5 animate-spin" />
+              {currentStage.label}
+            </p>
+          </div>
+
+          <div className="max-w-md mx-auto space-y-2">
+            <Progress value={progress} className="h-3" />
+            <p className="text-sm text-slate-500">{progress}% complete</p>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}

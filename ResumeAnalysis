@@ -1,0 +1,106 @@
+{
+  "name": "ResumeAnalysis",
+  "type": "object",
+  "properties": {
+    "candidate_name": {
+      "type": "string",
+      "description": "Name extracted from the resume"
+    },
+    "file_url": {
+      "type": "string",
+      "description": "URL of the uploaded resume"
+    },
+    "target_role": {
+      "type": "string",
+      "description": "Job role being analyzed for"
+    },
+    "overall_score": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 100,
+      "description": "Overall resume score out of 100"
+    },
+    "skills_score": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 100,
+      "description": "Score for skills relevance and presentation"
+    },
+    "experience_score": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 100,
+      "description": "Score for experience quality and relevance"
+    },
+    "formatting_score": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 100,
+      "description": "Score for resume formatting and structure"
+    },
+    "impact_score": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 100,
+      "description": "Score for achievement impact and quantification"
+    },
+    "extracted_skills": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "List of skills found in the resume"
+    },
+    "years_of_experience": {
+      "type": "number",
+      "description": "Total years of experience"
+    },
+    "suggestions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "category": {
+            "type": "string",
+            "enum": [
+              "skills",
+              "experience",
+              "formatting",
+              "impact",
+              "general"
+            ]
+          },
+          "priority": {
+            "type": "string",
+            "enum": [
+              "high",
+              "medium",
+              "low"
+            ]
+          },
+          "suggestion": {
+            "type": "string"
+          }
+        }
+      },
+      "description": "Actionable suggestions for improvement"
+    },
+    "strengths": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Key strengths identified in the resume"
+    },
+    "role_match_percentage": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 100,
+      "description": "How well the resume matches the target role"
+    }
+  },
+  "required": [
+    "file_url",
+    "overall_score"
+  ]
+}

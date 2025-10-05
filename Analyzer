@@ -1,0 +1,184 @@
+import React, { useState, useCallback } from "react";
+import { ResumeAnalysis } from "@/entities/ResumeAnalysis";
+import { UploadFile, InvokeLLM } from "@/integrations/Core";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ArrowLeft } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { useNavigate } from "react-router-dom";
+import { createPageUrl } from "@/utils";
+import { motion, AnimatePresence } from "framer-motion";
+
+import UploadZone from "../components/analyzer/UploadZone";
+import JobRoleSelector from "../components/analyzer/JobRoleSelector";
+import AnalysisProgress from "../components/analyzer/AnalysisProgress";
+import ResultsView from "../components/analyzer/ResultsView";
+
+export default function Analyzer() {
+  const navigate = useNavigate();
+  const [file, setFile] = useState(null);
+  const [targetRole, setTargetRole] = useState("");
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const [analysisResult, setAnalysisResult] = useState(null);
+
+  const handleFileSelect = (selectedFile) => {
+    setFile(selectedFile);
+    setAnalysisResult(null);
+  };
+
+  const analyzeResume = async () => {
+    if (!file) return;
+
+    setIsAnalyzing(true);
+    setProgress(10);
+
+    try {
+      // Upload file
+      setProgress(20);
+      const { file_url } = await UploadFile({ file });
+      
+      setProgress(40);
+
+      // Analyze with AI
+      const prompt = `Analyze this resume thoroughly and provide a detailed assessment.
+${targetRole ? `The candidate is applying for: ${targetRole}` : ''}
+
+Extract and evaluate:
+1. Candidate name
+2. Years of experience (estimate from work history)
+3. All technical and soft skills
+4. Key strengths (3-5 points)
+
+Score the resume (0-100) on:
+- Skills: Relevance, variety, and presentation of skills
+- Experience: Quality, relevance, and progression
+- Formatting: Structure, clarity, and professional appearance
+- Impact: Use of metrics, achievements, and quantifiable results
+
+Provide 5-8 specific, actionable suggestions categorized as:
+- high priority (critical improvements)
+- medium priority (recommended improvements)
+- low priority (nice-to-have improvements)
+
+Calculate role match percentage if target role provided.
+
+Be specific, professional, and constructive. Focus on what makes a resume stand out to recruiters.`;
+
+      const response = await InvokeLLM({
+        prompt,
+        file_urls: [file_url],
+        response_json_schema: ResumeAnalysis.schema()
+      });
+
+      setProgress(80);
+
+      // Save analysis
+      const savedAnalysis = await ResumeAnalysis.create({
+        ...response,
+        file_url,
+        target_role: targetRole || "General",
+        overall_score: Math.round(
+          (response.skills_score + response.experience_score + 
+           response.formatting_score + response.impact_score) / 4
+        )
+      });
+
+      setProgress(100);
+      setAnalysisResult(savedAnalysis);
+    } catch (error) {
+      console.error("Error analyzing resume:", error);
+    }
+
+    setIsAnalyzing(false);
+  };
+
+  return (
+    <div className="min-h-screen p-4 md:p-8">
+      <div className="max-w-6xl mx-auto space-y-8">
+        {/* Header */}
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="flex items-center gap-4"
+        >
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => navigate(createPageUrl("Dashboard"))}
+            className="hover:bg-slate-100"
+          >
+            <ArrowLeft className="w-5 h-5" />
+          </Button>
+          <div>
+            <h1 className="text-3xl md:text-4xl font-bold text-slate-900 tracking-tight">
+              Resume Analyzer
+            </h1>
+            <p className="text-slate-600 mt-1">
+              Upload a resume and get AI-powered insights in seconds
+            </p>
+          </div>
+        </motion.div>
+
+        <AnimatePresence mode="wait">
+          {!analysisResult && !isAnalyzing && (
+            <motion.div
+              key="upload"
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="space-y-6"
+            >
+              <UploadZone onFileSelect={handleFileSelect} file={file} />
+              
+              {file && (
+                <>
+                  <JobRoleSelector value={targetRole} onChange={setTargetRole} />
+                  
+                  <div className="flex justify-center">
+                    <Button
+                      onClick={analyzeResume}
+                      disabled={!file}
+                      size="lg"
+                      className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 shadow-xl hover:shadow-2xl transition-all duration-300 px-12 py-6 text-lg"
+                    >
+                      Analyze Resume with AI
+                    </Button>
+                  </div>
+                </>
+              )}
+            </motion.div>
+          )}
+
+          {isAnalyzing && (
+            <motion.div
+              key="analyzing"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+            >
+              <AnalysisProgress progress={progress} />
+            </motion.div>
+          )}
+
+          {analysisResult && !isAnalyzing && (
+            <motion.div
+              key="results"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+            >
+              <ResultsView 
+                analysis={analysisResult} 
+                onNewAnalysis={() => {
+                  setFile(null);
+                  setAnalysisResult(null);
+                  setTargetRole("");
+                }}
+              />
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+    </div>
+  );
+}
