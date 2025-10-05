@@ -1,0 +1,48 @@
+import React from "react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Target } from "lucide-react";
+
+const commonRoles = [
+  "Software Engineer",
+  "Product Manager",
+  "Data Scientist",
+  "UX Designer",
+  "Marketing Manager",
+  "Sales Representative"
+];
+
+export default function JobRoleSelector({ value, onChange }) {
+  return (
+    <Card className="border-none shadow-lg bg-white/90 backdrop-blur-sm">
+      <CardContent className="p-6 space-y-4">
+        <div className="flex items-center gap-3">
+          <div className="p-2 bg-gradient-to-br from-purple-100 to-pink-100 rounded-lg">
+            <Target className="w-5 h-5 text-purple-600" />
+          </div>
+          <Label className="text-lg font-semibold text-slate-900">
+            Target Job Role (Optional)
+          </Label>
+        </div>
+        <Input
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder="e.g., Senior Software Engineer"
+          className="text-lg py-6"
+        />
+        <div className="flex flex-wrap gap-2">
+          {commonRoles.map((role) => (
+            <button
+              key={role}
+              onClick={() => onChange(role)}
+              className="px-4 py-2 rounded-full text-sm font-medium bg-slate-100 hover:bg-indigo-100 hover:text-indigo-700 transition-colors"
+            >
+              {role}
+            </button>
+          ))}
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
