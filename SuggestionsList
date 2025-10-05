@@ -1,0 +1,97 @@
+import React from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { AlertCircle, TrendingUp, CheckCircle, Lightbulb } from "lucide-react";
+import { motion } from "framer-motion";
+
+const priorityConfig = {
+  high: {
+    icon: AlertCircle,
+    color: "text-red-600 bg-red-50 border-red-200",
+    label: "High Priority"
+  },
+  medium: {
+    icon: TrendingUp,
+    color: "text-amber-600 bg-amber-50 border-amber-200",
+    label: "Medium Priority"
+  },
+  low: {
+    icon: CheckCircle,
+    color: "text-emerald-600 bg-emerald-50 border-emerald-200",
+    label: "Low Priority"
+  }
+};
+
+const categoryIcons = {
+  skills: "💪",
+  experience: "📊",
+  formatting: "📄",
+  impact: "⚡",
+  general: "💡"
+};
+
+export default function SuggestionsList({ suggestions }) {
+  if (!suggestions || suggestions.length === 0) return null;
+
+  const groupedByPriority = {
+    high: suggestions.filter(s => s.priority === "high"),
+    medium: suggestions.filter(s => s.priority === "medium"),
+    low: suggestions.filter(s => s.priority === "low")
+  };
+
+  return (
+    <Card className="border-none shadow-lg bg-white/80 backdrop-blur-sm">
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2 text-xl">
+          <Lightbulb className="w-6 h-6 text-amber-500" />
+          Suggestions for Improvement
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-6">
+        {["high", "medium", "low"].map((priority) => {
+          const items = groupedByPriority[priority];
+          if (items.length === 0) return null;
+
+          const config = priorityConfig[priority];
+          const Icon = config.icon;
+
+          return (
+            <div key={priority} className="space-y-3">
+              <div className="flex items-center gap-2">
+                <Badge className={`${config.color} border px-3 py-1`}>
+                  <Icon className="w-4 h-4 mr-1" />
+                  {config.label}
+                </Badge>
+                <span className="text-sm text-slate-500">({items.length})</span>
+              </div>
+              
+              <div className="space-y-2">
+                {items.map((item, index) => (
+                  <motion.div
+                    key={index}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.05 }}
+                    className="flex items-start gap-3 p-4 rounded-xl bg-slate-50 hover:bg-slate-100 transition-colors border border-slate-100"
+                  >
+                    <span className="text-2xl flex-shrink-0">
+                      {categoryIcons[item.category] || "💡"}
+                    </span>
+                    <div className="flex-1">
+                      <p className="text-slate-700 leading-relaxed">{item.suggestion}</p>
+                      {item.category && (
+                        <Badge variant="outline" className="mt-2 text-xs">
+                          {item.category}
+                        </Badge>
+                      )}
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            </div>
+          );
+        })}
+      </CardContent>
+    </Card>
+  );
+}
